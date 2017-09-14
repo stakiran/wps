@@ -58,7 +58,7 @@ $ python wps.py -f "p c l"
 出力フォーマット指定その2。 (PIDと生成日時とキャプション)
 
 ```
-$ python wps.py -f "p d c" --desc
+$ python wps.py -f "p d c"
     0 2017/09/11 08:20:03 System Idle Process
     4 2017/09/11 08:20:03 System
   292 2017/09/11 08:20:03 smss.exe
