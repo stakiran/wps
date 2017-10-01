@@ -6,6 +6,14 @@ import subprocess
 def get_stdout(cmdline):
     return subprocess.check_output(cmdline, shell=True)
 
+def kill_process_and_exit(pid):
+    returncode = os.system('taskkill /pid {:}'.format(pid))
+    exit(returncode)
+
+def term_process_and_exit(pid):
+    returncode = os.system('taskkill /f /pid {:}'.format(pid))
+    exit(returncode)
+
 def p(msg):
     print msg
 
@@ -34,20 +42,18 @@ def parse_arguments():
     return parser.parse_args()
 
 args = parse_arguments()
-keywords     = args.keyword
+keywords    = args.keyword
 line_format = args.format
 use_desc    = args.desc
 killtarget  = args.kill
 termtarget  = args.terminate
 
 if killtarget and killtarget.isdigit():
-    kill_pid = int(killtarget)
-    returncode = os.system('taskkill /pid {:}'.format(kill_pid))
-    exit(returncode)
+    pid = int(killtarget)
+    kill_process_and_exit(pid)
 if termtarget and termtarget.isdigit():
-    term_pid = int(termtarget)
-    returncode = os.system('taskkill /f /pid {:}'.format(term_pid))
-    exit(returncode)
+    pid = int(termtarget)
+    term_process_and_exit(pid)
 
 selfpid = os.getpid()
 
@@ -122,6 +128,8 @@ class Process:
     def date(self):
         return self._date
 
+# wmic process の出力結果をパース.
+
 processes = []
 process = None
 for i,line in enumerate(stdout_lines):
@@ -132,7 +140,10 @@ for i,line in enumerate(stdout_lines):
     process.parse_line(line)
 processes.append(process) # The last instance.
 
+# 結果表示や絞り込みで使うための整形
+
 outlines = []
+outprocesses = []
 for i,process in enumerate(processes):
     # 自身のプロセス情報は除外する.
     if process.pid == selfpid:
@@ -151,7 +162,63 @@ for i,process in enumerate(processes):
     line = line.replace('|c|', process.caption)
     line = line.replace('|l|', process.commandline)
     outlines.append(line)
+    outprocesses.append(process)
 
+# pkill 時は当該 PID を特定して（あるいはさせて） kill して終わり.
+
+if killtarget or termtarget:
+    query = killtarget
+    use_term = False
+    if query==None:
+        query = termtarget
+        use_term = True
+
+    target_candidates = []
+    candidate_curno = 0
+    for i,ps in enumerate(outprocesses):
+        findee = '{:>5} {:} {:}'.format(ps.pid, ps.caption, ps.commandline)
+        findee = findee.lower()
+        if findee.find(query)==-1:
+            continue
+        # 1-origin at displaying,
+        candidate_curno += 1
+        p('{:>2} {:}'.format(candidate_curno, findee))
+        target_candidates.append(ps.pid)
+
+    if len(target_candidates)==0:
+        abort('No mached process with "{:}".'.format(query))
+
+    if len(target_candidates)==1:
+        pid = target_candidates[0]
+        if use_term:
+            term_process_and_exit(pid)
+        kill_process_and_exit(pid)
+
+    # 候補複数の時は番号で一つを選ばせる.
+    # q でキャンセル or 一つ選ぶまで終わらせない.
+
+    pid = None
+    while True:
+        s = raw_input('Target PID? (Press "q" to cancel.) >')
+        s = s.lower()
+        if s=='q':
+            exit(0)
+        if s.isdigit():
+            # 0-origin at internal.
+            idx = int(s) - 1
+            if idx<0 or idx>=len(target_candidates):
+                continue
+            pid = target_candidates[idx]
+            break
+        continue
+    if use_term:
+        term_process_and_exit(pid)
+    kill_process_and_exit(pid)
+
+# それ以外はただの表示処理なので絞りこんで表示して終わり.
+
+# 並びに統一性をもたせるためソートをかます.
+# ASC/DESC はオプションで切り替えてもらう.
 outlines.sort()
 if use_desc:
     outlines.reverse()
