@@ -26,10 +26,10 @@ def parse_arguments():
     parser.add_argument('--desc', default=False, action='store_true',
         help='Use DESC order. If not given, use ASC order.')
 
-    parser.add_argument('-k', '--kill', default=None, type=int,
-        help='A PID being killed.')
-    parser.add_argument('-t', '--terminate', default=None, type=int,
-        help='A PID being killed forcely.')
+    parser.add_argument('-k', '--kill', default=None, type=str,
+        help='A PID or keyword of process being killed.')
+    parser.add_argument('-t', '--terminate', default=None, type=str,
+        help='A PID or keyword of process being killed forcely.')
 
     return parser.parse_args()
 
@@ -37,13 +37,15 @@ args = parse_arguments()
 keywords     = args.keyword
 line_format = args.format
 use_desc    = args.desc
-kill_pid    = args.kill
-term_pid    = args.terminate
+killtarget  = args.kill
+termtarget  = args.terminate
 
-if kill_pid:
+if killtarget and killtarget.isdigit():
+    kill_pid = int(killtarget)
     returncode = os.system('taskkill /pid {:}'.format(kill_pid))
     exit(returncode)
-if term_pid:
+if termtarget and termtarget.isdigit():
+    term_pid = int(termtarget)
     returncode = os.system('taskkill /f /pid {:}'.format(term_pid))
     exit(returncode)
 
