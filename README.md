@@ -112,8 +112,7 @@ PID ではなく文字列を指定すると、キャプションやコマンド�
 ```
 $ notepad
 
-$ wps -k note
-Command:"python D:\work\github\stakiran_sub\wps\wps.py -k notepad"
+$ python wps.py -k note
  1  1948 notepad.exe notepad
 成功: PID 1948 のプロセスに強制終了のシグナルを送信しました。
 ```
@@ -127,8 +126,7 @@ $ notepad
 
 $ notepad
 
-$ wps -k note
-Command:"python D:\work\github\stakiran_sub\wps\wps.py -k note"
+$ python wps.py -k note
  1  7952 notepad.exe notepad
  2  6132 notepad.exe notepad
  3  2524 notepad.exe notepad
@@ -137,8 +135,7 @@ Target PID? (Press "q" to cancel.) >a
 Target PID? (Press "q" to cancel.) >3
 成功: PID 2524 のプロセスに強制終了のシグナルを送信しました。
 
-$ wps note
-Command:"python D:\work\github\stakiran_sub\wps\wps.py note"
+$ python wps.py note
  6132 notepad
  7952 notepad
 ```
