@@ -6,7 +6,8 @@
   - [Overview](#overview)
   - [Demo](#demo)
     - [見る](#見る)
-    - [殺す](#殺す)
+    - [殺す(PIDを指定)](#殺すpidを指定)
+    - [殺す(文字列を指定)](#殺す文字列を指定)
   - [Requirement](#requirement)
   - [FAQ](#faq)
     - [Q: Kill と Terminate の違いは？](#q-kill-と-terminate-の違いは)
@@ -22,7 +23,7 @@
 - `tasklist` コマンド → コマンドラインが出ないので論外
 - `wmic process` コマンド → 引数が煩雑なのと、出力に余計な空行が入って見辛い
 
-というわけで何か良い手段は無いかと考えて、「個人的に使う引数も限られてるし wmic process の簡単なラッパーでいいか」と思い、書いてみたところ、意外と使えそうだったので公開します。
+というわけで何か良い手段は無いかと考えて、「個人的に使う引数も限られてるし wmic process の簡単なラッパーでいいか」と思い、書いてみたところ、意外と使えるので公開してみました。
 
 ## Demo
 
@@ -83,7 +84,7 @@ $ python wps.py -f "d c" --desc
 ...
 ```
 
-### 殺す
+### 殺す(PIDを指定)
 PID を指定してプロセスを殺すことができる。以下は自分で立ち上げた notepad.exe を試しに殺してみた例。
 
 ```
@@ -101,7 +102,46 @@ $ python wps.py -k 7048
 エラー: プロセス "7048" が見つかりませんでした。
 ```
 
-`-k` ではなく `-t` を使うと Terminate(強制終了) を実行する。
+なお `-k` ではなく `-t` を使うと Terminate(強制終了) を実行する。
+
+### 殺す(文字列を指定)
+PID ではなく文字列を指定すると、キャプションやコマンドラインに部分一致するプロセスを殺すことができる。
+
+まずは一致したプロセスが一つの場合。即座に殺す。
+
+```
+$ notepad
+
+$ wps -k note
+Command:"python D:\work\github\stakiran_sub\wps\wps.py -k notepad"
+ 1  1948 notepad.exe notepad
+成功: PID 1948 のプロセスに強制終了のシグナルを送信しました。
+```
+
+続いて一致したプロセスが複数の場合。番号で選んだものを殺す。有効な番号を指定するか、`q` を指定するまで番号指定は終わらない。
+
+```
+$ notepad
+
+$ notepad
+
+$ notepad
+
+$ wps -k note
+Command:"python D:\work\github\stakiran_sub\wps\wps.py -k note"
+ 1  7952 notepad.exe notepad
+ 2  6132 notepad.exe notepad
+ 3  2524 notepad.exe notepad
+Target PID? (Press "q" to cancel.) >4
+Target PID? (Press "q" to cancel.) >a
+Target PID? (Press "q" to cancel.) >3
+成功: PID 2524 のプロセスに強制終了のシグナルを送信しました。
+
+$ wps note
+Command:"python D:\work\github\stakiran_sub\wps\wps.py note"
+ 6132 notepad
+ 7952 notepad
+```
 
 ## Requirement
 - Windows 7+
